@@ -1,0 +1,15 @@
+
+!ENTRY org.eclipse.ui 2 2 2022-08-18 10:49:51.976
+!MESSAGE Invalid property category path: org.springframework.ide.eclipse.beans.ui.properties.ProjectPropertyPage (bundle: org.springframework.ide.eclipse.xml.namespaces, propertyPage: org.springframework.ide.eclipse.beans.ui.namespaces.projectPropertyPage)
+
+!ENTRY org.springframework.tooling.ls.eclipse.commons 1 0 2022-08-18 16:18:48.672
+!MESSAGE ClasspathListenerHandler removeClasspathListener sts4.classpath.LYXSqWPm
+
+!ENTRY org.springframework.tooling.ls.eclipse.commons 1 0 2022-08-18 16:18:48.676
+!MESSAGE unsubscribing from classpath changes: sts4.classpath.LYXSqWPm
+
+!ENTRY org.springframework.tooling.ls.eclipse.commons 1 0 2022-08-18 16:18:48.677
+!MESSAGE subsribers = {}
+
+!ENTRY org.springframework.tooling.ls.eclipse.commons 1 0 2022-08-18 16:18:48.679
+!MESSAGE ClasspathListenerHandler removeClasspathListener sts4.classpath.LYXSqWPm => OK

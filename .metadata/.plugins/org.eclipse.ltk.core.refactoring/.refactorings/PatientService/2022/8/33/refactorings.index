@@ -1,0 +1,15 @@
+1659867767606	Rename type 'PatientControllerTest'
+1659869038061	Rename method 'getAllPatients_success'
+1659869055067	Rename method 'getPatientById_test'
+1659869074822	Rename method 'addPatient_test'
+1659869095068	Rename method 'deletePatientsBasedOnHospitalId_test'
+1659869777951	Rename method 'testGddPatient'
+1659870940743	Rename method 'test_save'
+1659870956240	Rename method 'test_saveWithExceptionThrow'
+1659870973080	Rename method 'test_findAllPatients'
+1659870984828	Rename method 'test_findPatientById'
+1659870998245	Rename method 'test_deletePatientsBasedOnHospitalId'
+1660141336763	Delete element
+1660145276188	Copy compilation unit
+1660145332137	Rename type 'Patient'
+1660152639456	Delete element

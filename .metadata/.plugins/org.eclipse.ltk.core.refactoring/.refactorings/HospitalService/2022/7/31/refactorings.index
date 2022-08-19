@@ -1,0 +1,6 @@
+1659094911291	Rename method 'findHospitalById'
+1659094941668	Rename method 'deleteHospitalById'
+1659099622252	Rename method 'findByHospitalName'
+1659192055636	Rename package 'com.microservice.hospital.model'
+1659192097769	Rename type 'PatientHospitalDetails'
+1659192626642	Rename local variable 'patientHospitalDetails'

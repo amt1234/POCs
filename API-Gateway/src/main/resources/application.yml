@@ -1,0 +1,35 @@
+server:
+  port: 8083
+  
+spring:
+  application:
+    name: API_GATEWAY
+
+  cloud:
+    gateway:
+      routes:
+      - id: PATIENT-SERVICE
+        uri:
+          lb://PATIENT-SERVICE
+        predicates:
+        - Path=/patient/**
+        
+      - id: HOSPITAL-SERVICE
+        uri:
+          lb://HOSPITAL-SERVICE
+        predicates:
+        - Path=/hospital/**
+        
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedHeaders: "*"
+            allowedMethods:
+            - GET
+            - POST
+            - DELETE
+            - PUT
+eureka:
+  instance:
+    prefer-ip-address: true         

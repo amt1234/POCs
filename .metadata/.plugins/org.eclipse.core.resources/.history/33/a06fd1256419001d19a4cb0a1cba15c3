@@ -1,0 +1,162 @@
+package com.microservice.hospital.controller;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.CoreMatchers.is;
+import static org.mockito.Mockito.doNothing;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.microservice.hospital.entity.Hospital;
+import com.microservice.hospital.kafka.Producer;
+import com.microservice.hospital.repository.HospitalRepository;
+import com.microservice.hospital.vo.Patient;
+import com.microservice.hospital.vo.ResponseTemplateVO;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+class TestHospitalController {
+
+	@Autowired
+	private MockMvc mockMvc;
+
+	ObjectMapper objectMapper = new ObjectMapper();
+	ObjectWriter objectWriter = objectMapper.writer();
+
+	@MockBean
+	private HospitalRepository hospitalRepository;
+
+	@MockBean
+	private Producer producer;
+
+	Map<Hospital, Hospital> map = new HashMap<Hospital, Hospital>();
+	Hospital hospital1 = new Hospital(1L, "PKC Hospital", "Mumbai");
+	Hospital hospital2 = new Hospital(2L, "Apollo Hospital", "Pune");
+	Hospital hospital3 = new Hospital(3L, "Sai Hospital", "Thane");
+	Hospital hospital5 = new Hospital(1L, "PKC Hospital", "Mumbai");
+
+	@Test
+	public void testAddHospital() throws Exception {
+		Hospital hospital4 = new Hospital();
+		hospital4.setHospitalId(4L);
+		hospital4.setHospitalName("City Hospital");
+		hospital4.setHospitalAddress("Panvel");
+
+		map.put(hospital1, hospital1);
+		map.put(hospital5, hospital5);
+		map.put(hospital3, hospital3);
+
+		Mockito.when(hospitalRepository.save(Mockito.any(Hospital.class))).thenReturn(hospital4);
+
+		String content = objectWriter.writeValueAsString(hospital4);
+
+		MockHttpServletRequestBuilder mockRquest = MockMvcRequestBuilders.post("/hospital/add")
+				.contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).content(content);
+
+		mockMvc.perform(mockRquest).andExpect(status().isCreated())
+				.andExpect(jsonPath("$.hospitalName", is(hospital4.getHospitalName())));
+
+	}
+
+	@Test
+	public void testGetByHospitalId() throws Exception {
+		Mockito.when(hospitalRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(hospital1));
+
+		mockMvc.perform(MockMvcRequestBuilders.get("/hospital/id/1").contentType(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk()).andExpect(jsonPath("$.hospitalName", is(hospital1.getHospitalName())));
+
+	}
+
+	@Test
+	public void testGetAllHospitalsName() throws Exception {
+		List<Hospital> listOfHospitals = Arrays.asList(hospital1, hospital2, hospital3);
+
+		Mockito.when(hospitalRepository.findAll()).thenReturn(listOfHospitals);
+		mockMvc.perform(MockMvcRequestBuilders.get("/hospital/names").contentType(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk()).andExpect(jsonPath("$").isArray())
+				.andExpect(jsonPath("$[0]", is("PKC Hospital"))).andExpect(jsonPath("$[1]", is("Apollo Hospital")))
+				.andExpect(jsonPath("$[2]", is("Sai Hospital")));
+	}
+
+	@Test
+	public void testDeleteHospital() throws Exception {
+		doNothing().when(hospitalRepository).deleteById(hospital2.getHospitalId());
+
+		mockMvc.perform(MockMvcRequestBuilders.delete("/hospital/delete/2").contentType(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk());
+	}
+
+	@Test
+	public void testGetAllDataOfHosbitalById() throws Exception {
+		
+		ResponseTemplateVO vo = new ResponseTemplateVO();
+		Mockito.when(hospitalRepository.findById(hospital1.getHospitalId())).thenReturn(Optional.of(hospital1));
+		Hospital hospital = hospitalRepository.findById(1L).get();
+		vo.setHospital(hospital);
+
+		Patient patient1 = new Patient(1L, "Ridi", 27, "fever", 1L, "9999999977");
+		Patient patient2 = new Patient();
+		patient2.setPatientId(4L);
+		patient2.setPatientName("Ravi");
+		patient2.setPatientAge(50);
+		patient2.setPatientDisease("leaver pain");
+		patient2.setHospitalId(2L);
+		patient2.setContactNumber("9933333445");
+		List<Patient> listOfPatient = new ArrayList<>(Arrays.asList(patient1, patient2));
+		vo.setPatients(listOfPatient);
+
+		mockMvc.perform(
+				MockMvcRequestBuilders.get("/hospital/hospitalDetails/1").contentType(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk());
+
+		assertThat(hospital.getHospitalId()).isEqualTo(patient1.getHospitalId());
+	}
+
+	@Test
+	public void testNoSuchElementExceptionExceptionThrow() throws Exception {
+		mockMvc.perform(
+				MockMvcRequestBuilders.get("/hospital/hospitalDetails/5").contentType(MediaType.APPLICATION_JSON))
+				.andExpect(status().isNotFound());
+
+		// when - action or the behaviour that we are going test
+		org.junit.jupiter.api.Assertions.assertThrowsExactly(NoSuchElementException.class, () -> {
+			hospitalRepository.findById(Mockito.anyLong()).get();
+		});
+
+	}
+
+	@Test
+	public void testHandleHttpRequestMethodNotSupported() throws Exception {
+		mockMvc.perform(MockMvcRequestBuilders.post("/hospital/id/1").contentType(MediaType.APPLICATION_JSON))
+				.andExpect(status().isMethodNotAllowed());
+
+	}
+
+	@Test
+	public void testHandleIllegalArgumentException() throws Exception {
+		Long id = null;
+		Mockito.when(hospitalRepository.findById(id)).thenThrow(IllegalArgumentException.class);
+		mockMvc.perform(MockMvcRequestBuilders.get("/hospital/id/" + id).contentType(MediaType.APPLICATION_JSON));
+	}
+
+}
